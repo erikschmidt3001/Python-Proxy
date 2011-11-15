@@ -1,0 +1,11 @@
+Python-Proxy
+
+This is nothing more than a school project.
+
+A simple HTTP-Proxy written in Python with two modes of operation:
+
+1. normal
+2. annoying
+
+'normal' passes and returns all traffic as expected, 'annoying' does annoying things
+like rotating images, changing requests...
