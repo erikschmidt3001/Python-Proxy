@@ -10,4 +10,4 @@ A simple HTTP-Proxy written in Python with two modes of operation:
 'normal' passes and returns all traffic as expected, 'annoying' does annoying things
 like rotating images, changing requests...
 
-
+Let's get to it then.
