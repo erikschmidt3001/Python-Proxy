@@ -4,39 +4,71 @@ bufsize = 8192
 
 class TCPHandler(SocketServer.BaseRequestHandler):
 	def handle(self):
-		client_address = self.client_address
 		#while True:
-		client_data = self.request.recv(bufsize)
-                header = get_header(client_data)
-                print 'Got ' + header[1] + ' from ' + str(client_address)
+		self.client_data = self.request.recv(bufsize)
+                self.method, self.url, self.protocol = self.get_header(self.client_data)
+                print 'Got ' + self.method + ' ' + self.url + ' ' + self.protocol +' from ' + str(self.client_address)
                 print 'Now trying to fetch the desired website.'
-                website = get_website(header[1])
+                # processing depends on the method
+                if self.method == 'CONNECT':
+                        self.connect_method()
+                elif self.method in ('OPTIONS', 'GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'TRACE'):
+                        self.other_methods()
+                        
+                
+                website = self.get_website()
         	self.request.send(website)
+        	print 'Success.'
 
-def get_header(request):
-        while True:
-                line_end = request.find('\n')
-                if line_end != -1:
-                        break
-        print '%s' % request[:line_end] #debug
-        data = request[:line_end+1].split()
-        return data
+        def connect_method(self):
+                pass
 
-def get_website(url):
-        try:
-                urlhandler = urllib.urlopen(url)
-                html = urlhandler.read()
-        except IOError:
-                print 'Can\'t establish a connection to: ' + url
-                html = 'IOError'
-        except:
-                print 'Some other exception occurred.'
-                html = 'Other exception'
-        return html
+        def other_methods(self):
+                self.path = self.url[7:]
+                index = self.path.find('/')
+                host = self.path[:index]
+                path = self.path[index:]
+                print 'Connecting to: ' + host, path
+                self.establish_connection(host)
+                print 'Connected.'
+                print 'Sending: ' + self.method, path, self.protocol, self.client_data
+                self.target.send('%s %s %s\n'%(self.method, self.path, self.protocol) + self.client_data)
+                print 'Sent.'
 
-def annoying(html_input):
-        
-        return annoying_output
+        def establish_connection(self, host):
+                index = host.find(':')
+                if index != -1:
+                        port = int(host[index+1:])
+                        host = host[:index]
+                else:
+                        port = 80
+                socket_family, _, _, _, address = socket.getaddrinfo(host, port)[0]
+                self.target = socket.socket(socket_family)
+                return self.target.connect(address)
+
+        def get_header(self, request):
+                print request
+                while True:
+                        line_end = request.find('\n')
+                        if line_end != -1:
+                                break
+                data = request[:line_end+1].split() # split the header into method, path and protocol
+                return data
+
+        def get_website(self):
+                try:
+                        urlhandler = urllib.urlopen(self.url)
+                        html = urlhandler.read()
+                except IOError:
+                        print 'Can\'t establish a connection to: ' + self.url
+                        html = 'IOError'
+                except:
+                        print 'Some other exception occurred.'
+                        html = 'Other exception'
+                return html
+
+        def annoying(html_input):
+                pass        
 
 def start_server(host='127.0.0.1', port=8080, timeout=10,
                  handler=TCPHandler, mode='n'):
