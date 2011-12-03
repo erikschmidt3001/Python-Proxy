@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# _*_ coding: utf-8 _*_
 #Copyright (c) <2009> <Fábio Domingues - fnds3000 in gmail.com>
 #
 #Permission is hereby granted, free of charge, to any person
